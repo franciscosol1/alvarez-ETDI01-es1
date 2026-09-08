@@ -10,11 +10,15 @@
 <body>
     <header class="site-header">
         <div class="header-inner">
-            <a class="brand" href="{% url 'catalogo:lista' %}">
+            <a class="brand" href="{% url 'catalogo:landing' %}">
                 <span class="brand-mark">FS</span>
                 <span><strong>FerroSur</strong><small>Soluciones para construir</small></span>
             </a>
-            <span class="header-label">CATALOGO ONLINE</span>
+            <div class="header-actions">
+                <a class="header-catalog-link" href="{% url 'catalogo:lista' %}">Catálogo</a>
+                <span class="header-label">CATALOGO ONLINE</span>
+                <a class="header-admin-link" href="{% url 'catalogo:admin_login' %}">Admin</a>
+            </div>
         </div>
     </header>
     <main class="page-shell">

@@ -23,6 +23,7 @@
     <div class="product-grid">
         {% for producto in productos %}
         <article class="product-card {% if producto.stock == 0 %}is-unavailable{% endif %}">
+            <div class="product-image" style="background-image: url('{{ producto.sprite }}'); background-position: {{ producto.bg_x }}% {{ producto.bg_y }}%;"></div>
             <div class="product-topline">
                 <span class="category">{{ producto.categoria }}</span>
                 {% if producto.stock > 0 %}
@@ -36,7 +37,14 @@
                 <strong class="price">${{ producto.precio|floatformat:0 }}</strong>
                 {% if producto.stock > 0 %}<span class="stock">{{ producto.stock }} unidades</span>{% endif %}
             </div>
-            <a class="detail-link" href="{% url 'catalogo:detalle' producto.id %}">Ver detalle <span aria-hidden="true">&rarr;</span></a>
+            <div class="card-actions">
+                <a class="detail-link" href="{% url 'catalogo:detalle' producto.id %}">Ver detalle <span aria-hidden="true">&rarr;</span></a>
+                <form method="post" action="{% url 'catalogo:compra' producto.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="cantidad" value="1">
+                    <button type="submit" class="primary-button" {% if producto.stock == 0 %}disabled{% endif %}>Comprar</button>
+                </form>
+            </div>
         </article>
         {% empty %}
         <p>No hay productos disponibles.</p>
