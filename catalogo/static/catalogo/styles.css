@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+:root {
+    --ink: #18221f;
+    --muted: #6b746f;
+    --paper: #f5f3ed;
+    --card: #fffefa;
+    --line: #d9ddd5;
+    --green: #1e5848;
+    --lime: #d4e85a;
+    --red: #a64c3d;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--ink); background: var(--paper); font-family: 'DM Sans', sans-serif; }
+.site-header { background: var(--green); color: white; }
+.header-inner { max-width: 1180px; margin: auto; padding: 22px 28px; display: flex; align-items: center; justify-content: space-between; }
+.brand { color: white; text-decoration: none; display: flex; align-items: center; gap: 12px; }
+.brand-mark { width: 38px; height: 38px; display: grid; place-items: center; background: var(--lime); color: var(--green); font: 700 13px 'Space Grotesk', sans-serif; }
+.brand strong, .brand small { display: block; }
+.brand strong { font: 700 19px 'Space Grotesk', sans-serif; }
+.brand small { color: #c7d8c4; font-size: 11px; margin-top: 2px; }
+.header-label { color: var(--lime); font-size: 11px; font-weight: 700; letter-spacing: .12em; }
+.page-shell { max-width: 1180px; margin: auto; padding: 74px 28px 90px; }
+.intro { display: flex; justify-content: space-between; align-items: end; gap: 40px; padding-bottom: 54px; }
+.eyebrow { margin: 0 0 14px; color: var(--green); font-size: 11px; font-weight: 700; letter-spacing: .14em; }
+h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; }
+h1 { max-width: 650px; margin: 0; font-size: clamp(38px, 5vw, 68px); line-height: .98; letter-spacing: -.03em; }
+.lead { max-width: 510px; color: var(--muted); font-size: 17px; line-height: 1.6; margin: 22px 0 0; }
+.summary { display: flex; flex-shrink: 0; border-top: 2px solid var(--ink); padding-top: 13px; gap: 34px; }
+.summary div { min-width: 83px; }
+.summary strong, .summary span { display: block; }
+.summary strong { font: 700 28px 'Space Grotesk', sans-serif; }
+.summary span { color: var(--muted); font-size: 12px; margin-top: 3px; }
+.section-heading { display: flex; align-items: baseline; justify-content: space-between; border-bottom: 1px solid var(--line); padding-bottom: 13px; }
+.section-heading h2 { margin: 0; font-size: 24px; }
+.section-heading span { color: var(--muted); font-size: 13px; }
+.product-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; padding-top: 18px; }
+.product-card { background: var(--card); border: 1px solid var(--line); padding: 22px; min-height: 224px; display: flex; flex-direction: column; transition: transform .2s ease, box-shadow .2s ease; }
+.product-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px #18221f12; }
+.product-card.is-unavailable { background: #eeece6; color: #777b75; }
+.product-topline, .product-footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.category { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+.availability { font-size: 11px; font-weight: 700; }
+.available { color: var(--green); }
+.unavailable { color: var(--red); }
+.product-card h3 { font-size: 20px; line-height: 1.15; margin: 28px 0 30px; }
+.product-footer { margin-top: auto; align-items: end; }
+.price { font: 700 25px 'Space Grotesk', sans-serif; }
+.stock { color: var(--muted); font-size: 12px; }
+.detail-link, .back-link { color: var(--green); font-size: 13px; font-weight: 700; text-decoration: none; }
+.detail-link { border-top: 1px solid var(--line); margin-top: 17px; padding-top: 13px; }
+.detail-link span { float: right; font-size: 17px; }
+.back-link { display: inline-block; margin-bottom: 28px; }
+.detail-card { max-width: 760px; background: var(--card); border: 1px solid var(--line); padding: 50px; }
+.detail-card h1 { font-size: clamp(36px, 6vw, 64px); }
+.detail-meta { display: flex; gap: 70px; border-top: 1px solid var(--line); margin-top: 50px; padding-top: 22px; }
+.detail-meta span, .detail-meta strong { display: block; }
+.detail-meta span { color: var(--muted); font-size: 12px; margin-bottom: 7px; }
+.detail-meta strong { font: 700 21px 'Space Grotesk', sans-serif; }
+.text-available { color: var(--green); }
+.text-unavailable { color: var(--red); }
+.site-footer { border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; padding: 25px 28px; text-align: center; }
+@media (max-width: 760px) {
+    .header-inner, .intro { align-items: flex-start; }
+    .header-label { display: none; }
+    .page-shell { padding-top: 46px; }
+    .intro { display: block; }
+    .summary { margin-top: 34px; width: max-content; }
+    .product-grid { grid-template-columns: 1fr; }
+    .detail-card { padding: 30px 24px; }
+    .detail-meta { gap: 25px; flex-wrap: wrap; margin-top: 35px; }
+}

@@ -1,0 +1,21 @@
+{% extends 'catalogo/base.html' %}
+
+{% block title %}{{ producto.nombre }} | FerroSur{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{% url 'catalogo:lista' %}">&larr; Volver al catalogo</a>
+<article class="detail-card {% if producto.stock == 0 %}is-unavailable{% endif %}">
+    <p class="eyebrow">{{ producto.categoria }}</p>
+    <h1>{{ producto.nombre }}</h1>
+    <div class="detail-meta">
+        <div><span>Precio</span><strong>${{ producto.precio|floatformat:0 }}</strong></div>
+        <div><span>Disponibilidad</span>
+            {% if producto.stock > 0 %}
+                <strong class="text-available">{{ producto.stock }} unidades en stock</strong>
+            {% else %}
+                <strong class="text-unavailable">Producto sin stock</strong>
+            {% endif %}
+        </div>
+    </div>
+</article>
+{% endblock %}
