@@ -12,6 +12,37 @@ from django.shortcuts import redirect, render
 
 DATOS_PATH = Path(__file__).parent / 'data' / 'productos.json'
 
+IMAGENES_PRODUCTOS = {
+  1: 'martillo.png',
+  2: 'destornillador.png',
+  3: 'set de llaves allen 9.png',
+  4: 'alicate.png',
+  5: 'cinta metrica.png',
+  6: 'nivel de burbuja.png',
+  7: 'taladro percutor.png',
+  8: 'brocas para concreto.png',
+  9: 'cierra circular.png',
+  10: 'disco de corte metal.png',
+  11: 'lijadora orbital.png',
+  12: 'guantes.png',
+  13: 'lentes.png',
+  14: 'casco.png',
+  16: 'tornillo madera.png',
+  17: 'tarugo.png',
+  18: 'clavos.png',
+  19: 'pernos.png',
+  20: 'silicona.png',
+  21: 'adecibos.png',
+  22: 'cinta hasliadora.png',
+  23: 'enchufe.png',
+  25: 'cable electrico.png',
+  26: 'llave de paso.png',
+  27: 'flexibles.png',
+  28: 'cinta teflon.png',
+  29: 'rodillo.png',
+  30: 'brocha.png',
+}
+
 
 def cargar_productos():
     with DATOS_PATH.open(encoding='utf-8') as archivo:
@@ -244,12 +275,16 @@ def generar_imagen_producto(producto):
 
 def preparar_producto(producto):
     producto_con_imagen = dict(producto)
-    producto_con_imagen['imagen'] = generar_imagen_producto(producto)
-    producto_con_imagen['sprite'] = '/static/catalogo/productos.png'
-    fila = int((producto.get('id', 1) - 1) / 5)
-    columna = (producto.get('id', 1) - 1) % 5
-    producto_con_imagen['bg_x'] = (columna * 100) / 4
-    producto_con_imagen['bg_y'] = (fila * 100) / 5
+    imagen = IMAGENES_PRODUCTOS.get(producto.get('id'))
+    if imagen:
+        ruta_imagen = f'/static/catalogo/productos(imageness)/{quote(imagen)}'
+        producto_con_imagen['imagen'] = ruta_imagen
+        producto_con_imagen['sprite'] = ruta_imagen
+    else:
+        producto_con_imagen['imagen'] = generar_imagen_producto(producto)
+        producto_con_imagen['sprite'] = producto_con_imagen['imagen']
+    producto_con_imagen['bg_x'] = 50
+    producto_con_imagen['bg_y'] = 50
     return producto_con_imagen
 
 
