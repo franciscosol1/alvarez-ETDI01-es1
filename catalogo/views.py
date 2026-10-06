@@ -3,11 +3,12 @@ from pathlib import Path
 from urllib.parse import quote
 
 from django.contrib import messages
-from django.contrib.auth import login, logout
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.forms import AuthenticationForm
-from django.http import Http404
 from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404
+
+from .models import Producto
 
 
 DATOS_PATH = Path(__file__).parent / 'data' / 'productos.json'
@@ -44,21 +45,28 @@ IMAGENES_PRODUCTOS = {
 }
 
 
-def cargar_productos():
-    with DATOS_PATH.open(encoding='utf-8') as archivo:
-        return json.load(archivo)
+def preparar_producto(producto):
+    if isinstance(producto, Producto):
+        producto_data = {
+            'id': producto.pk,
+            'nombre': producto.nombre,
+            'categoria': producto.categoria,
+            'precio': float(producto.precio),
+            'stock': producto.stock,
+        }
+    else:
+        producto_data = dict(producto)
 
+    imagen = IMAGENES_PRODUCTOS.get(producto_data.get('id'))
+    if imagen:
+        ruta_imagen = f'/static/catalogo/productos(imageness)/{quote(imagen)}'
+        producto_con_imagen = {**producto_data, 'imagen': ruta_imagen, 'sprite': ruta_imagen}
+    else:
+        producto_con_imagen = {**producto_data, 'imagen': generar_imagen_producto(producto_data), 'sprite': generar_imagen_producto(producto_data)}
 
-def guardar_productos(productos):
-    with DATOS_PATH.open('w', encoding='utf-8') as archivo:
-        json.dump(productos, archivo, ensure_ascii=False, indent=2)
-
-
-def obtener_producto(producto_id):
-    return next(
-        (producto for producto in cargar_productos() if producto['id'] == producto_id),
-        None,
-    )
+    producto_con_imagen['bg_x'] = 50
+    producto_con_imagen['bg_y'] = 50
+    return producto_con_imagen
 
 
 def generar_imagen_producto(producto):
@@ -273,58 +281,30 @@ def generar_imagen_producto(producto):
     return 'data:image/svg+xml;charset=UTF-8,' + quote(svg)
 
 
-def preparar_producto(producto):
-    producto_con_imagen = dict(producto)
-    imagen = IMAGENES_PRODUCTOS.get(producto.get('id'))
-    if imagen:
-        ruta_imagen = f'/static/catalogo/productos(imageness)/{quote(imagen)}'
-        producto_con_imagen['imagen'] = ruta_imagen
-        producto_con_imagen['sprite'] = ruta_imagen
-    else:
-        producto_con_imagen['imagen'] = generar_imagen_producto(producto)
-        producto_con_imagen['sprite'] = producto_con_imagen['imagen']
-    producto_con_imagen['bg_x'] = 50
-    producto_con_imagen['bg_y'] = 50
-    return producto_con_imagen
-
-
 def admin_login(request):
     if request.user.is_authenticated and request.user.is_staff:
-        return redirect('catalogo:panel_admin')
-
-    if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            if user.is_staff:
-                login(request, user)
-                return redirect('catalogo:panel_admin')
-            form.add_error(None, 'Debes tener permisos de administrador.')
-    else:
-        form = AuthenticationForm()
-
-    return render(request, 'catalogo/admin_login.html', {'form': form})
+        return redirect('admin:index')
+    return redirect('admin:login')
 
 
-@login_required(login_url='catalogo:admin_login')
-@user_passes_test(lambda user: user.is_staff, login_url='catalogo:admin_login')
+@login_required(login_url='admin:login')
+@user_passes_test(lambda user: user.is_staff, login_url='admin:login')
 def admin_logout(request):
     logout(request)
-    return redirect('catalogo:admin_login')
+    return redirect('admin:login')
 
 
-@login_required(login_url='catalogo:admin_login')
-@user_passes_test(lambda user: user.is_staff, login_url='catalogo:admin_login')
+@login_required(login_url='admin:login')
+@user_passes_test(lambda user: user.is_staff, login_url='admin:login')
 def panel_admin(request):
-    productos = [preparar_producto(producto) for producto in cargar_productos()]
-    return render(request, 'catalogo/admin_dashboard.html', {'productos': productos})
+    return redirect('admin:index')
 
 
-@login_required(login_url='catalogo:admin_login')
-@user_passes_test(lambda user: user.is_staff, login_url='catalogo:admin_login')
+@login_required(login_url='admin:login')
+@user_passes_test(lambda user: user.is_staff, login_url='admin:login')
 def crear_producto(request):
     if request.method != 'POST':
-        return redirect('catalogo:panel_admin')
+        return redirect('admin:index')
 
     nombre = (request.POST.get('nombre') or '').strip()
     categoria = (request.POST.get('categoria') or '').strip()
@@ -334,64 +314,49 @@ def crear_producto(request):
         stock = int(request.POST.get('stock', 0) or 0)
     except ValueError:
         messages.error(request, 'Precio y stock deben ser valores válidos.')
-        return redirect('catalogo:panel_admin')
+        return redirect('admin:index')
 
     if not nombre or not categoria or precio <= 0:
         messages.error(request, 'Completa nombre, categoría y un precio válido.')
-        return redirect('catalogo:panel_admin')
+        return redirect('admin:index')
 
-    productos = cargar_productos()
-    nuevo_id = max((producto['id'] for producto in productos), default=0) + 1
-
-    productos.append(
-        {
-            'id': nuevo_id,
-            'nombre': nombre,
-            'categoria': categoria,
-            'precio': round(precio, 2),
-            'stock': max(0, stock),
-        }
+    producto = Producto.objects.create(
+        nombre=nombre,
+        categoria=categoria,
+        precio=round(precio, 2),
+        stock=max(0, stock),
     )
-    guardar_productos(productos)
-    messages.success(request, f'Se creó el producto "{nombre}" correctamente.')
-    return redirect('catalogo:panel_admin')
+    messages.success(request, f'Se creó el producto "{producto.nombre}" correctamente.')
+    return redirect('admin:index')
 
 
-@login_required(login_url='catalogo:admin_login')
-@user_passes_test(lambda user: user.is_staff, login_url='catalogo:admin_login')
+@login_required(login_url='admin:login')
+@user_passes_test(lambda user: user.is_staff, login_url='admin:login')
 def actualizar_stock(request, producto_id):
     if request.method != 'POST':
-        return redirect('catalogo:panel_admin')
+        return redirect('admin:index')
 
-    producto = obtener_producto(producto_id)
-    if producto is None:
-        raise Http404('El producto no existe.')
+    producto = get_object_or_404(Producto, pk=producto_id)
 
     try:
-        nuevo_stock = int(request.POST.get('stock', producto['stock']) or producto['stock'])
+        nuevo_stock = int(request.POST.get('stock', producto.stock) or producto.stock)
     except ValueError:
         messages.error(request, 'El stock debe ser un número entero.')
-        return redirect('catalogo:panel_admin')
+        return redirect('admin:index')
 
-    nuevo_stock = max(0, nuevo_stock)
-    productos = cargar_productos()
-    for item in productos:
-        if item['id'] == producto_id:
-            item['stock'] = nuevo_stock
-            break
-
-    guardar_productos(productos)
-    messages.success(request, f'Se actualizó el stock de "{producto["nombre"]}" a {nuevo_stock}.')
-    return redirect('catalogo:panel_admin')
+    producto.stock = max(0, nuevo_stock)
+    producto.save(update_fields=['stock'])
+    messages.success(request, f'Se actualizó el stock de "{producto.nombre}" a {producto.stock}.')
+    return redirect('admin:index')
 
 
 def landing(request):
-    productos = [preparar_producto(producto) for producto in cargar_productos()[:3]]
-    return render(request, 'catalogo/landing.html', {'productos_destacados': productos})
+    productos_destacados = [preparar_producto(producto) for producto in Producto.objects.order_by('id')[:3]]
+    return render(request, 'catalogo/landing.html', {'productos_destacados': productos_destacados})
 
 
 def lista_productos(request):
-    productos = [preparar_producto(producto) for producto in cargar_productos()]
+    productos = [preparar_producto(producto) for producto in Producto.objects.order_by('id')]
     contexto = {
         'productos': productos,
         'total_productos': len(productos),
@@ -401,25 +366,20 @@ def lista_productos(request):
 
 
 def detalle_producto(request, producto_id):
-    producto = obtener_producto(producto_id)
-    if producto is None:
-        raise Http404('El producto no existe.')
+    producto = get_object_or_404(Producto, pk=producto_id)
     return render(request, 'catalogo/detalle.html', {'producto': preparar_producto(producto)})
 
 
 def simular_compra(request, producto_id):
-    producto = obtener_producto(producto_id)
-    if producto is None:
-        raise Http404('El producto no existe.')
-
-    producto = preparar_producto(producto)
+    producto = get_object_or_404(Producto, pk=producto_id)
+    producto_data = preparar_producto(producto)
 
     if request.method != 'POST':
         return render(
             request,
             'catalogo/compra.html',
             {
-                'producto': producto,
+                'producto': producto_data,
                 'error': 'Esta compra debe realizarse desde el formulario del producto.',
             },
         )
@@ -431,33 +391,28 @@ def simular_compra(request, producto_id):
 
     cantidad = max(1, cantidad)
 
-    if producto['stock'] == 0 or cantidad > producto['stock']:
+    if producto.stock == 0 or cantidad > producto.stock:
         return render(
             request,
             'catalogo/compra.html',
             {
-                'producto': producto,
+                'producto': producto_data,
                 'cantidad': cantidad,
                 'error': 'No hay stock suficiente para completar esta compra.',
             },
         )
 
-    productos = cargar_productos()
-    for item in productos:
-        if item['id'] == producto_id:
-            item['stock'] -= cantidad
-            producto = preparar_producto(item)
-            break
-
-    guardar_productos(productos)
+    producto.stock -= cantidad
+    producto.save(update_fields=['stock'])
+    producto_data = preparar_producto(producto)
 
     return render(
         request,
         'catalogo/compra.html',
         {
-            'producto': producto,
+            'producto': producto_data,
             'cantidad': cantidad,
-            'total': producto['precio'] * cantidad,
+            'total': float(producto.precio) * cantidad,
             'exito': True,
         },
     )

@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}FerroSur | Catalogo{% endblock %}</title>
+    <title>{% block title %}FerroSur | Catálogo{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'catalogo/styles.css' %}">
 </head>
 <body>
@@ -16,8 +16,7 @@
             </a>
             <div class="header-actions">
                 <a class="header-catalog-link" href="{% url 'catalogo:lista' %}">Catálogo</a>
-                <span class="header-label">CATALOGO ONLINE</span>
-                <a class="header-admin-link" href="{% url 'catalogo:admin_login' %}">Admin</a>
+                <a class="header-admin-link" href="/admin/" target="_blank">Admin</a>
             </div>
         </div>
     </header>
